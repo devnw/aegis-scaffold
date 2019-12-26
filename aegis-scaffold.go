@@ -117,7 +117,7 @@ func processFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, 
 			}
 
 			if len(*templatePath) == 0 || !files.ValidDir(*templatePath) {
-				*templatePath = appConfig.PDEPath()
+				*templatePath = appConfig.AegisPath()
 			}
 
 		} else {
