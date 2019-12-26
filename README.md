@@ -6,3 +6,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 aegis-scaffold
+
+```
+aegis-scaffold -config dev.json -cpath "config file path" -domain "location to generate domain files" -dal "location to generate dal" -sproc "location of aegis procedures folder" -migrate "location of aegis migrations folder" -tpath "location of aegis-scaffold templates folder"
+
+```
