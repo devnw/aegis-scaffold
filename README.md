@@ -7,6 +7,8 @@
 
 aegis-scaffold
 
+**NOTE: We're still building the Readme files for Aegis.**
+
 ```
 aegis-scaffold -config dev.json -cpath "config file path" -domain "location to generate domain files" -dal "location to generate dal" -sproc "location of aegis procedures folder" -migrate "location of aegis migrations folder" -tpath "location of aegis-scaffold templates folder"
 
