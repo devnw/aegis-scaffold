@@ -17,6 +17,7 @@ const (
 	migrateMode = 1 << iota
 	deleteMode
 	procedureMode
+	generateMode
 )
 
 func main() {
@@ -34,15 +35,16 @@ func main() {
 
 	templatePath := flag.String("tpath", "", "The path where the 'templates' directory is located.")
 
-	migrateFlag := flag.Bool("m", false, "One of three flags [m|d|p] that control what parts of the scaffolding execute. If m is present among the flags, the migrations will be run. If none of the 3 flags are present, all steps of the scaffolding execute")
-	deleteFlag := flag.Bool("d", false, "One of three flags [m|d|p] that control what parts of the scaffolding execute. If d is present among the flags, the old generated files will be deleted. If none of the 3 flags are present, all steps of the scaffolding execute")
-	procedureFlag := flag.Bool("p", false, "One of three flags [m|d|p] that control what parts of the scaffolding execute. If p is present among the flags, the stored procedures will be processed. If none of the 3 flags are present, all steps of the scaffolding execute")
+	migrateFlag := flag.Bool("m", false, "One of four flags [m|d|p|g] that control what parts of the scaffolding execute. If m is present among the flags, the migrations will be run. If none of the 4 flags are present, all steps of the scaffolding execute")
+	deleteFlag := flag.Bool("d", false, "One of four flags [m|d|p|g] that control what parts of the scaffolding execute. If d is present among the flags, the old generated files will be deleted. If none of the 4 flags are present, all steps of the scaffolding execute")
+	procedureFlag := flag.Bool("p", false, "One of four flags [m|d|p|g] that control what parts of the scaffolding execute. If p is present among the flags, the stored procedures will be processed. If none of the 4 flags are present, all steps of the scaffolding execute")
+	generateFlag := flag.Bool("g", false, "One of four flags [m|d|p|g] that control what parts of the scaffolding execute. If p is present among the flags, the stored procedures will be processed. If none of the 4 flags are present, all steps of the scaffolding execute")
 
 	flag.Parse()
 
 	// executionMode controls which steps of the scaffolding execute based on which flags were present
 	// if none of the flags are present, all steps are enabled by default
-	var executionMode = getExecutionMode(migrateFlag, deleteFlag, procedureFlag)
+	var executionMode = getExecutionMode(migrateFlag, deleteFlag, procedureFlag, generateFlag)
 
 	appConfig, domainPath, dalPath, schemaMigration, err := processFlags(sprocPath, domainGenPath, dalGenPath, schemaMigrationPath, configFile, configPath, templatePath)
 
@@ -86,7 +88,7 @@ func runScaffolding(dbConn connection.DatabaseConnection, executionMode int, sch
 	if err == nil {
 		if hasFlag(executionMode, procedureMode) {
 			fmt.Println("BEGINNING processing of stored procedures")
-			if err = scaffold.ProcessSprocs(dbConn, *sprocPath, domainPath, dalPath, *templatePath); err == nil {
+			if err = scaffold.ProcessSprocs(dbConn, *sprocPath, domainPath, dalPath, *templatePath, hasFlag(executionMode, generateMode)); err == nil {
 				fmt.Println("FINISHED processing of stored procedures")
 			} else {
 				err = fmt.Errorf("error while processing stored procedures - %s", err.Error())
@@ -186,10 +188,10 @@ func cleanOutOldGeneratedFiles(domainpath string, sprocpath string) (err error) 
 	return err
 }
 
-func getExecutionMode(migrateFlag *bool, deleteFlag *bool, procedureFlag *bool) (mode int) {
-	if !*migrateFlag && !*deleteFlag && !*procedureFlag {
+func getExecutionMode(migrateFlag *bool, deleteFlag *bool, procedureFlag *bool, generateFlag *bool) (mode int) {
+	if !*migrateFlag && !*deleteFlag && !*procedureFlag && !*generateFlag {
 		// if none of the flags were set, we do all processes by default
-		mode = migrateMode | deleteMode | procedureMode
+		mode = migrateMode | deleteMode | procedureMode | generateMode
 	} else {
 		// otherwise we enable each mode bit by performing a logical or-equals if the corresponding flag is present
 		if *migrateFlag {
@@ -200,6 +202,9 @@ func getExecutionMode(migrateFlag *bool, deleteFlag *bool, procedureFlag *bool) 
 		}
 		if *procedureFlag {
 			mode |= procedureMode
+		}
+		if *generateFlag {
+			mode |= generateMode
 		}
 	}
 
