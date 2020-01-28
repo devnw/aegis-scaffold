@@ -46,7 +46,9 @@ func main() {
 	// if none of the flags are present, all steps are enabled by default
 	var executionMode = getExecutionMode(migrateFlag, deleteFlag, procedureFlag, generateFlag)
 
-	appConfig, domainPath, dalPath, schemaMigration, err := processFlags(sprocPath, domainGenPath, dalGenPath, schemaMigrationPath, configFile, configPath, templatePath)
+	needGeneratePaths := *deleteFlag || *generateFlag
+
+	appConfig, domainPath, dalPath, schemaMigration, err := processFlags(sprocPath, domainGenPath, dalGenPath, schemaMigrationPath, configFile, configPath, templatePath, needGeneratePaths)
 
 	if err == nil {
 		var dbConn connection.DatabaseConnection
@@ -99,8 +101,8 @@ func runScaffolding(dbConn connection.DatabaseConnection, executionMode int, sch
 	return err
 }
 
-func processFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, schemaMigrationPath *string, configFile *string, configPath *string, templatePath *string) (appConfig config.AppConfig, domainPath string, dalPath string, schemaMigration string, err error) {
-	err = validateFlags(sprocPath, domainGenPath, dalGenPath, schemaMigrationPath, configFile, configPath, templatePath)
+func processFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, schemaMigrationPath *string, configFile *string, configPath *string, templatePath *string, needGeneratePaths bool) (appConfig config.AppConfig, domainPath string, dalPath string, schemaMigration string, err error) {
+	err = validateFlags(sprocPath, domainGenPath, dalGenPath, schemaMigrationPath, configFile, configPath, templatePath, needGeneratePaths)
 	if err == nil {
 		if appConfig, err = config.LoadConfig(*configPath, *configFile); err == nil {
 
@@ -130,10 +132,10 @@ func processFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, 
 	return appConfig, domainPath, dalPath, schemaMigration, err
 }
 
-func validateFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, schemaMigrationPath *string, configFile *string, configPath *string, templatePath *string) (err error) {
+func validateFlags(sprocPath *string, domainGenPath *string, dalGenPath *string, schemaMigrationPath *string, configFile *string, configPath *string, templatePath *string, needGeneratePaths bool) (err error) {
 	if sprocPath != nil && files.ValidDir(*sprocPath) {
-		if domainGenPath != nil && files.ValidDir(*domainGenPath) {
-			if dalGenPath != nil && files.ValidDir(*dalGenPath) {
+		if !needGeneratePaths || (domainGenPath != nil && files.ValidDir(*domainGenPath)) {
+			if !needGeneratePaths || (dalGenPath != nil && files.ValidDir(*dalGenPath)) {
 
 				if schemaMigrationPath != nil && files.ValidDir(*schemaMigrationPath) {
 
